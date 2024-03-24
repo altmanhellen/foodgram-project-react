@@ -12,6 +12,7 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
   backend:
+    restart: always
     build: ../backend
     env_file: .env
     volumes:
@@ -28,6 +29,7 @@ services:
     volumes:
       - ../frontend/:/app/result_build/
   nginx:
+    restart: always
     image: nginx:1.19.3
     ports:
       - "80:80"
