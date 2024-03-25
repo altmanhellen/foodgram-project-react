@@ -1,4 +1,3 @@
-from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 
@@ -26,7 +25,7 @@ class Tag(models.Model):
 
     name = models.CharField(max_length=200, verbose_name='Название')
     color = models.CharField(max_length=200, verbose_name='Цвет')
-    slug = models.SlugField(max_length=200, unique=True, verbose_name='Slug')
+    slug = models.SlugField(max_length=200, unique=True, verbose_name='Слаг')
 
     class Meta:
         verbose_name = 'Тег'
@@ -107,13 +106,6 @@ class Favorite(models.Model):
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранные'
         ordering = ('-recipe__pub_date',)
-
-    def save(self, *args, **kwargs):
-        if self.user == self.recipe.author:
-            raise ValidationError(
-                'Пользователи не могут добавлять свои рецепты в Избранное'
-            )
-        super(Favorite, self).save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.user} добавил в избранное рецепт {self.recipe}'

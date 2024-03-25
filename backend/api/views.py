@@ -30,14 +30,13 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для ингредиентов."""
 
-    queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
     filterset_class = IngredientFilter
     filter_backends = (filters.DjangoFilterBackend,)
 
     def get_queryset(self):
-        queryset = self.queryset
+        queryset = Ingredient.objects.all()
         name = self.request.query_params.get('name')
         if name:
             queryset = queryset.filter(name__istartswith=name)
@@ -64,18 +63,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def favorite(self, request, pk=None):
 
         if request.method == 'POST':
-            try:
-                recipe = Recipe.objects.get(pk=pk)
-            except Recipe.DoesNotExist:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-
             serializer = FavoriteSerializer(
-                data={'user': request.user.id, 'recipe': recipe.id},
+                data={'user': request.user.id, 'recipe': pk},
             )
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        elif request.method == 'DELETE':
+        if request.method == 'DELETE':
             recipe = get_object_or_404(Recipe, pk=pk)
             favorite = Favorite.objects.filter(user=request.user,
                                                recipe=recipe)
@@ -88,17 +82,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(IsAuthenticated,))
     def shopping_cart(self, request, pk=None):
         if request.method == 'POST':
-            try:
-                recipe = Recipe.objects.get(pk=pk)
-            except Recipe.DoesNotExist:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
             serializer = ShoppingCartSerializer(
-                data={'user': request.user.id, 'recipe': recipe.id}
+                data={'user': request.user.id, 'recipe': pk}
             )
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        elif request.method == 'DELETE':
+        if request.method == 'DELETE':
             recipe = get_object_or_404(Recipe, pk=pk)
             cart_item = ShoppingCart.objects.filter(
                 user=request.user, recipe=recipe
@@ -122,9 +112,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         for ingredient in ingredients:
             content += (
                 '{name} ({measurement_unit}) - {total_amount}\n'.format(
-                    name=ingredient["name"],
-                    measurement_unit=ingredient["measurement_unit"],
-                    total_amount=ingredient["total_amount"]
+                    name=ingredient['name'],
+                    measurement_unit=ingredient['measurement_unit'],
+                    total_amount=ingredient['total_amount']
                 )
             )
 
@@ -145,7 +135,8 @@ class UserViewSet(DjoserUserViewSet):
         serializer = self.get_serializer(user)
         return Response(serializer.data)
 
-    @action(detail=False, methods=('get',), url_path='subscriptions')
+    @action(detail=False, methods=('get',), url_path='subscriptions',
+            permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
         """Метод для получения списка подписок."""
         user = request.user
@@ -173,7 +164,7 @@ class UserViewSet(DjoserUserViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        elif request.method == 'DELETE':
+        if request.method == 'DELETE':
             subscription = Follower.objects.filter(user=user,
                                                    author=user_to_subscribe)
             if not subscription.exists():

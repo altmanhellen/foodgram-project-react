@@ -2,8 +2,9 @@ import base64
 import re
 
 from django.core.files.base import ContentFile
-from djoser.serializers import \
+from djoser.serializers import (
     UserCreateSerializer as DjoserUserCreateSerializer
+)
 from djoser.serializers import UserSerializer as DjoserUserSerializer
 from rest_framework import serializers
 
@@ -20,7 +21,7 @@ class Base64ImageField(serializers.ImageField):
             _, base64_str = data.split(';base64,')
             decoded_file = base64.b64decode(base64_str)
             data = ContentFile(decoded_file,
-                               name='temp.' + self.get_file_extension(data))
+                               name=f'temp.{self.get_file_extension(data)}')
         return super().to_internal_value(data)
 
     def get_file_extension(self, data):
@@ -131,8 +132,10 @@ class RecipeSerializer(serializers.ModelSerializer):
             unique_ingredients.add(ingredient_id)
             try:
                 ingredient = Ingredient.objects.get(id=ingredient_id)
-            except Ingredient.DoesNotExist:
-                raise serializers.ValidationError('Ингредиента не существует.')
+            except Ingredient.DoesNotExist as err:
+                raise serializers.ValidationError(
+                    'Ингредиента не существует.'
+                ) from err
             amount = ingredient_data.get('amount')
             RecipeIngredient.objects.create(
                 recipe=recipe,
@@ -231,11 +234,10 @@ class FavoriteSerializer(serializers.ModelSerializer):
         fields = ('user', 'recipe')
 
     def validate(self, data):
-        if Favorite.objects.filter(user=data['user'],
-                                   recipe=data['recipe']).exists():
+        user = data['user']
+        recipe = data['recipe']
+        if Favorite.objects.filter(user=user, recipe=recipe).exists():
             raise serializers.ValidationError('Рецепт уже в Избранном.')
-        if not Recipe.objects.filter(id=data['recipe'].id).exists():
-            raise serializers.ValidationError('Рецепта не существует.')
         return data
 
     def to_representation(self, instance):
@@ -257,8 +259,6 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Рецепт уже в Корзине.'
             )
-        if not Recipe.objects.filter(id=data['recipe'].id).exists():
-            raise serializers.ValidationError('Рецепта не существует.')
         return data
 
     def to_representation(self, instance):

@@ -19,7 +19,6 @@ services:
       - static:/app/collected_static
       - media:/app/media
       - ../data:/app/data
-
     depends_on:
       - db
   frontend:
@@ -28,6 +27,8 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
+    depends_on:
+      - backend
   nginx:
     restart: always
     image: nginx:1.19.3
@@ -39,3 +40,5 @@ services:
       - ../docs/:/usr/share/nginx/html/api/docs/
       - static:/usr/share/nginx/html/backend_static
       - media:/usr/share/nginx/html/media
+    depends_on:
+      - frontend
