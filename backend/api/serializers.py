@@ -8,8 +8,14 @@ from djoser.serializers import (
 )
 from rest_framework import serializers
 
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag)
+from recipes.models import (
+    Favorite,
+    Ingredient,
+    Recipe,
+    RecipeIngredient,
+    ShoppingCart,
+    Tag
+)
 from users.models import Follower, User
 
 
