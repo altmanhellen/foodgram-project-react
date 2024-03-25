@@ -3,9 +3,9 @@ import re
 
 from django.core.files.base import ContentFile
 from djoser.serializers import (
-    UserCreateSerializer as DjoserUserCreateSerializer
+    UserCreateSerializer as DjoserUserCreateSerializer,
+    UserSerializer as DjoserUserSerializer
 )
-from djoser.serializers import UserSerializer as DjoserUserSerializer
 from rest_framework import serializers
 
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
